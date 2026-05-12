@@ -1,35 +1,27 @@
 const { Pool } = require('pg');
 
+const isProduction = process.env.NODE_ENV === 'production';
+
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
-  max: 20,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 2000,
-});
-
-pool.on('connect', () => {
-  if (process.env.NODE_ENV !== 'production') {
-    console.log('Database connected');
-  }
+  ssl: isProduction ? { rejectUnauthorized: false } : false,
+  max: isProduction ? 3 : 10,
+  idleTimeoutMillis: 10000,
+  connectionTimeoutMillis: 10000,
+  allowExitOnIdle: true,
 });
 
 pool.on('error', (err) => {
-  console.error('Unexpected database error:', err);
+  console.error('Unexpected database error:', err.message);
 });
 
 const query = async (text, params) => {
-  const start = Date.now();
+  const client = await pool.connect();
   try {
-    const res = await pool.query(text, params);
-    const duration = Date.now() - start;
-    if (process.env.NODE_ENV !== 'production') {
-      console.log('Query executed', { text: text.substring(0, 80), duration, rows: res.rowCount });
-    }
+    const res = await client.query(text, params);
     return res;
-  } catch (error) {
-    console.error('Database query error:', error);
-    throw error;
+  } finally {
+    client.release();
   }
 };
 
