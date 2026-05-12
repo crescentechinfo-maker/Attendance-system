@@ -79,7 +79,16 @@ const authLimiter = rateLimit({
 });
 app.use('/api/auth/login', authLimiter);
 
-// Health check
+// Root & health
+app.get('/', (req, res) => {
+  res.json({
+    name: 'AttendEase API',
+    version: '1.0.0',
+    status: 'running',
+    docs: '/api/health',
+  });
+});
+
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
