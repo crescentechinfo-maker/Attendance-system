@@ -14,6 +14,8 @@ const leaveRoutes = require('./src/routes/leaves');
 const reportRoutes = require('./src/routes/reports');
 const { errorHandler, notFound } = require('./src/middleware/errorHandler');
 const logger = require('./src/config/logger');
+const { query } = require('./src/config/database');
+const bcrypt = require('bcryptjs');
 
 const app = express();
 
@@ -98,12 +100,32 @@ app.use('/api/reports', reportRoutes);
 app.use(notFound);
 app.use(errorHandler);
 
+const initAdmin = async () => {
+  try {
+    const existing = await query('SELECT id FROM users WHERE email = $1', ['admin123@gmail.com']);
+    if (existing.rows.length === 0) {
+      const hash = await bcrypt.hash('Admin123', 12);
+      await query(
+        `INSERT INTO users (email, password_hash, full_name, role, department, position, employee_id, is_active)
+         VALUES ($1, $2, 'System Administrator', 'admin', 'IT', 'System Admin', 'EMP0001', true)`,
+        ['admin123@gmail.com', hash]
+      );
+      logger.info('Admin account initialised.');
+    }
+  } catch (err) {
+    logger.warn('Admin init skipped: ' + err.message);
+  }
+};
+
 const PORT = parseInt(process.env.PORT) || 5000;
 
 if (require.main === module) {
-  app.listen(PORT, () => {
+  app.listen(PORT, async () => {
     logger.info(`Server running on port ${PORT} in ${process.env.NODE_ENV || 'development'} mode`);
+    await initAdmin();
   });
+} else {
+  initAdmin();
 }
 
 module.exports = app;

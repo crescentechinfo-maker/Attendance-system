@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
@@ -8,7 +8,7 @@ import { EyeIcon, EyeSlashIcon, BuildingOfficeIcon } from '@heroicons/react/24/o
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const { login, isAdminOrManager } = useAuth();
+  const { login } = useAuth();
   const navigate = useNavigate();
 
   const { register, handleSubmit, formState: { errors } } = useForm();
@@ -20,7 +20,7 @@ export default function Login() {
       toast.success(`Welcome back, ${user.full_name.split(' ')[0]}!`);
       navigate(['admin', 'manager'].includes(user.role) ? '/admin' : '/dashboard', { replace: true });
     } catch (error) {
-      toast.error(error.response?.data?.error || 'Login failed. Please try again.');
+      toast.error(error.response?.data?.error || 'Invalid email or password.');
     } finally {
       setLoading(false);
     }
@@ -40,7 +40,18 @@ export default function Login() {
 
         {/* Card */}
         <div className="card shadow-xl border-0">
-          <h2 className="text-xl font-semibold text-gray-900 mb-6">Sign in to your account</h2>
+          {/* Tabs */}
+          <div className="flex rounded-lg bg-gray-100 p-1 mb-6">
+            <span className="flex-1 text-center py-2 rounded-md bg-white text-primary-700 font-semibold text-sm shadow-sm">
+              Sign In
+            </span>
+            <Link
+              to="/register"
+              className="flex-1 text-center py-2 rounded-md text-gray-500 font-semibold text-sm hover:text-gray-700 transition-colors"
+            >
+              Sign Up
+            </Link>
+          </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
             <div>
@@ -48,7 +59,7 @@ export default function Login() {
               <input
                 type="email"
                 className={`input ${errors.email ? 'border-red-400 focus:ring-red-400' : ''}`}
-                placeholder="you@company.com"
+                placeholder="you@example.com"
                 {...register('email', {
                   required: 'Email is required',
                   pattern: { value: /^\S+@\S+$/i, message: 'Invalid email' },
@@ -83,7 +94,7 @@ export default function Login() {
               className="btn-primary w-full py-2.5 text-base"
             >
               {loading ? (
-                <span className="flex items-center gap-2">
+                <span className="flex items-center justify-center gap-2">
                   <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
@@ -94,24 +105,12 @@ export default function Login() {
             </button>
           </form>
 
-          {/* Demo credentials */}
-          <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Demo Accounts</p>
-            <div className="space-y-2 text-xs text-gray-600">
-              <div className="flex justify-between">
-                <span>Admin:</span>
-                <span className="font-mono">admin@company.com</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Employee:</span>
-                <span className="font-mono">employee@company.com</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Password:</span>
-                <span className="font-mono">Admin@123456</span>
-              </div>
-            </div>
-          </div>
+          <p className="mt-5 text-center text-sm text-gray-500">
+            New employee?{' '}
+            <Link to="/register" className="text-primary-600 font-medium hover:underline">
+              Create an account
+            </Link>
+          </p>
         </div>
       </div>
     </div>

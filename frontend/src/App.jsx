@@ -3,6 +3,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import Layout from './components/Layout';
 import LoadingSpinner from './components/LoadingSpinner';
 import Login from './pages/Login';
+import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import Attendance from './pages/Attendance';
 import Leaves from './pages/Leaves';
@@ -32,6 +33,7 @@ const PublicRoute = ({ children }) => {
 const AppRoutes = () => (
   <Routes>
     <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+    <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
 
     <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
       <Route path="/dashboard" element={<Dashboard />} />

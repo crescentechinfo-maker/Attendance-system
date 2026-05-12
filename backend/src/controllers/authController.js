@@ -50,9 +50,14 @@ const login = async (req, res, next) => {
 
 const register = async (req, res, next) => {
   try {
-    const { email, password, full_name, department, position, phone, role } = req.body;
+    const { email, password, full_name, department, position, phone } = req.body;
+    const normalizedEmail = email.toLowerCase().trim();
 
-    const existingUser = await query('SELECT id FROM users WHERE email = $1', [email.toLowerCase().trim()]);
+    if (normalizedEmail === 'admin123@gmail.com') {
+      return res.status(403).json({ error: 'This email is reserved. Please use a different email.' });
+    }
+
+    const existingUser = await query('SELECT id FROM users WHERE email = $1', [normalizedEmail]);
     if (existingUser.rows.length > 0) {
       return res.status(409).json({ error: 'Email already registered.' });
     }
@@ -66,27 +71,14 @@ const register = async (req, res, next) => {
 
     const result = await query(
       `INSERT INTO users (email, password_hash, full_name, role, department, position, phone, employee_id)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+       VALUES ($1, $2, $3, 'employee', $4, $5, $6, $7)
        RETURNING id, email, full_name, role, department, position, phone, employee_id, join_date, created_at`,
-      [
-        email.toLowerCase().trim(),
-        password_hash,
-        full_name,
-        role || 'employee',
-        department,
-        position,
-        phone,
-        employee_id,
-      ]
+      [normalizedEmail, password_hash, full_name, department, position, phone, employee_id]
     );
 
-    const user = result.rows[0];
-    const token = generateToken(user);
-
     res.status(201).json({
-      message: 'Account created successfully',
-      token,
-      user,
+      message: 'Account created successfully. Please sign in.',
+      user: result.rows[0],
     });
   } catch (error) {
     next(error);
