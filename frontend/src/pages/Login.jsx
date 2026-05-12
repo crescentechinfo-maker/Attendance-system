@@ -8,7 +8,7 @@ import { EyeIcon, EyeSlashIcon, BuildingOfficeIcon } from '@heroicons/react/24/o
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+  const { login, loginDemo } = useAuth();
   const navigate = useNavigate();
 
   const { register, handleSubmit, formState: { errors } } = useForm();
@@ -111,6 +111,27 @@ export default function Login() {
               Create an account
             </Link>
           </p>
+
+          {/* Demo Mode */}
+          <div className="mt-5 pt-5 border-t border-gray-100">
+            <p className="text-xs text-center text-gray-400 mb-3">No database? Try demo mode</p>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => { const u = loginDemo('employee'); toast.success(`Demo: ${u.full_name}`); navigate('/dashboard', { replace: true }); }}
+                className="flex-1 btn btn-secondary py-2 text-xs"
+              >
+                Demo Employee
+              </button>
+              <button
+                type="button"
+                onClick={() => { const u = loginDemo('admin'); toast.success(`Demo: ${u.full_name}`); navigate('/admin', { replace: true }); }}
+                className="flex-1 btn btn-secondary py-2 text-xs"
+              >
+                Demo Admin
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>

@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { authAPI } from '../services/api';
+import { authAPI, enableDemoMode, disableDemoMode, isDemoMode } from '../services/api';
 
 const AuthContext = createContext(null);
 
@@ -17,6 +17,10 @@ export const AuthProvider = ({ children }) => {
   const fetchUser = useCallback(async () => {
     const token = localStorage.getItem('token');
     if (!token) {
+      setLoading(false);
+      return;
+    }
+    if (isDemoMode()) {
       setLoading(false);
       return;
     }
@@ -47,9 +51,22 @@ export const AuthProvider = ({ children }) => {
     return userData;
   };
 
+  const loginDemo = (asRole = 'employee') => {
+    enableDemoMode();
+    const demoUser = asRole === 'admin'
+      ? { id: 'mock-admin-001', email: 'admin123@gmail.com', full_name: 'System Administrator', role: 'admin', department: 'IT', position: 'System Admin', employee_id: 'EMP0001' }
+      : { id: 'mock-emp-001', email: 'employee@demo.com', full_name: 'Demo Employee', role: 'employee', department: 'Engineering', position: 'Software Developer', employee_id: 'EMP0002' };
+    localStorage.setItem('token', 'demo-token');
+    localStorage.setItem('user', JSON.stringify(demoUser));
+    setUser(demoUser);
+    return demoUser;
+  };
+
   const logout = () => {
+    disableDemoMode();
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    localStorage.removeItem('demo_checkin');
     setUser(null);
   };
 
@@ -65,7 +82,7 @@ export const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider
-      value={{ user, loading, login, logout, updateUser, isAdmin, isManager, isAdminOrManager }}
+      value={{ user, loading, login, loginDemo, logout, updateUser, isAdmin, isManager, isAdminOrManager }}
     >
       {children}
     </AuthContext.Provider>
